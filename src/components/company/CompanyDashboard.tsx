@@ -4,18 +4,21 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/AppShell";
+import { PageHero } from "@/components/PageHero";
 import { PodcastPlayer } from "@/components/company/PodcastPlayer";
 import { fetchAnalysis, fetchLiveQuote, fetchScorecard, type LiveQuote } from "@/lib/actions";
 import { ScorecardCard, ScorecardSkeleton } from "@/components/ScorecardCard";
 import { getIRLinks } from "@/lib/services/ir";
 import { PriceDelta, SentimentBadge } from "@/components/SentimentBadge";
 import { useWatchlist } from "@/hooks/useWatchlist";
+import { useSavedReports } from "@/hooks/useSavedReports";
 import {
   Star,
   RefreshCw,
   Download,
   Copy,
   Check,
+  Bookmark,
   ArrowLeft,
   TrendingUp,
   TrendingDown,
@@ -130,6 +133,7 @@ export function CompanyDashboard({ ticker }: { ticker: string }) {
               <RefreshCw className={cn("h-3.5 w-3.5", (isFetching || isFetchingQuote) && "animate-spin")} /> Refresh
             </button>
             <PodcastPlayer ticker={upper} />
+            <SaveReportButton analysis={data} />
             <ExportButton analysis={data} />
             <button
               onClick={() => toggle(upper)}
@@ -142,12 +146,14 @@ export function CompanyDashboard({ ticker }: { ticker: string }) {
               )}
             >
               <Star className={cn("h-3.5 w-3.5", has(upper) && "fill-current")} />
-              {has(upper) ? "Saved" : "Save"}
+              {has(upper) ? "On Watchlist" : "Add to Watchlist"}
             </button>
           </div>
         </div>
 
-        <HeaderCard a={data} liveQuote={liveQuote ?? null} />
+        <PageHero>
+          <HeaderCard a={data} liveQuote={liveQuote ?? null} />
+        </PageHero>
 
         {scorecard ? (
           <ScorecardCard scorecard={scorecard} />
@@ -226,9 +232,11 @@ function LoadingState({ ticker }: { ticker: string }) {
   const { progress, activeIndex } = useSimulatedLoadingProgress();
 
   return (
-    <div className="px-4 md:px-8 py-16 max-w-3xl mx-auto text-center">
-      <div className="animate-pulse text-primary font-semibold text-2xl tabular">{ticker}</div>
-      <div className="mt-3 text-sm text-muted-foreground">Analyzing latest earnings…</div>
+    <div className="px-4 md:px-8 py-16 max-w-3xl mx-auto">
+      <PageHero className="text-center">
+        <div className="animate-pulse text-primary font-semibold text-2xl tabular">{ticker}</div>
+        <div className="mt-3 text-sm text-muted-foreground">Analyzing latest earnings…</div>
+      </PageHero>
       <div className="mt-8 max-w-md mx-auto space-y-4">
         <div className="space-y-2 text-left">
           <div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -278,23 +286,25 @@ function ConnectApiState({
   onBack: () => void;
 }) {
   return (
-    <div className="px-4 md:px-8 py-16 max-w-2xl mx-auto text-center">
-      <div className="text-primary text-3xl font-semibold tabular">{ticker}</div>
-      {liveQuote && (
-        <div className="mt-3 tabular">
-          <span className="text-2xl font-semibold">${liveQuote.price.toFixed(2)}</span>{" "}
-          <PriceDelta value={liveQuote.changePct} />
-          <div className="text-[11px] text-muted-foreground mt-1">
-            Live quote · {liveQuote.exchangeName ?? "—"} · updated{" "}
-            {new Date(liveQuote.regularMarketTime).toLocaleString()}
+    <div className="px-4 md:px-8 py-16 max-w-2xl mx-auto">
+      <PageHero className="text-center">
+        <div className="text-primary text-3xl font-semibold tabular">{ticker}</div>
+        {liveQuote && (
+          <div className="mt-3 tabular">
+            <span className="text-2xl font-semibold">${liveQuote.price.toFixed(2)}</span>{" "}
+            <PriceDelta value={liveQuote.changePct} />
+            <div className="text-[11px] text-muted-foreground mt-1">
+              Live quote · {liveQuote.exchangeName ?? "—"} · updated{" "}
+              {new Date(liveQuote.regularMarketTime).toLocaleString()}
+            </div>
           </div>
-        </div>
-      )}
-      <h1 className="mt-4 text-2xl font-semibold">We couldn't load a full brief for {ticker}</h1>
-      <p className="mt-3 text-sm text-muted-foreground">
-        The live price is streamed above, but we couldn't pull the earnings narrative for this
-        ticker right now. Try one of the tickers below, or head back to search.
-      </p>
+        )}
+        <h1 className="mt-4 text-2xl font-semibold">We couldn't load a full brief for {ticker}</h1>
+        <p className="mt-3 text-sm text-muted-foreground">
+          The live price is streamed above, but we couldn't pull the earnings narrative for this
+          ticker right now. Try one of the tickers below, or head back to search.
+        </p>
+      </PageHero>
       <div className="mt-6 rounded-xl border border-dashed border-border p-6 text-left text-sm">
         <div className="font-medium mb-2">Popular tickers</div>
         <div className="flex flex-wrap gap-2">
@@ -309,12 +319,14 @@ function ConnectApiState({
           ))}
         </div>
       </div>
-      <button
-        onClick={onBack}
-        className="mt-6 inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-2 text-xs hover:bg-accent"
-      >
-        <ArrowLeft className="h-3.5 w-3.5" /> Back to search
-      </button>
+      <div className="mt-6 flex justify-center">
+        <button
+          onClick={onBack}
+          className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-2 text-xs hover:bg-accent"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" /> Back to search
+        </button>
+      </div>
     </div>
   );
 }
@@ -372,6 +384,12 @@ function LiveIndicator({
     );
   }
   const live = quote.marketState === "REGULAR";
+  const knownState = quote.marketState && quote.marketState !== "UNKNOWN";
+  const stateLabel = live
+    ? "Live"
+    : knownState
+      ? quote.marketState.replace(/_/g, " ").toLowerCase()
+      : null;
   return (
     <span
       className="hidden sm:inline-flex items-center gap-1.5 text-[11px] px-2 py-1 rounded-md border"
@@ -390,7 +408,7 @@ function LiveIndicator({
           isFetching && "animate-ping",
         )}
       />
-      {live ? "Live" : quote.marketState.replace(/_/g, " ").toLowerCase()}
+      {stateLabel ?? "Updated"}
       {rel && <span className="text-muted-foreground">· {rel}</span>}
     </span>
   );
@@ -958,6 +976,43 @@ function analysisToMarkdown(a: EarningsAnalysis) {
     `## Next-quarter watchlist`,
     ...a.watchlist.map((w) => `- [${w.category}] ${w.item}`),
   ].join("\n");
+}
+
+function SaveReportButton({ analysis }: { analysis: EarningsAnalysis }) {
+  const { save, has, hydrated } = useSavedReports();
+  const [justSaved, setJustSaved] = useState(false);
+  const reportId = `${analysis.profile.ticker}-${analysis.profile.earningsQuarter}`;
+  const saved = has(reportId);
+
+  return (
+    <button
+      onClick={() => {
+        save({
+          id: reportId,
+          ticker: analysis.profile.ticker,
+          companyName: analysis.profile.name,
+          earningsQuarter: analysis.profile.earningsQuarter,
+          markdown: analysisToMarkdown(analysis),
+        });
+        setJustSaved(true);
+        setTimeout(() => setJustSaved(false), 1500);
+      }}
+      disabled={!hydrated}
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs transition",
+        saved || justSaved
+          ? "border-primary/40 bg-primary/10 text-primary"
+          : "border-border hover:bg-accent",
+      )}
+    >
+      {justSaved ? (
+        <Check className="h-3.5 w-3.5" />
+      ) : (
+        <Bookmark className={cn("h-3.5 w-3.5", saved && "fill-current")} />
+      )}
+      {justSaved ? "Saved!" : saved ? "Report saved" : "Save Report"}
+    </button>
+  );
 }
 
 function ExportButton({ analysis }: { analysis: EarningsAnalysis }) {

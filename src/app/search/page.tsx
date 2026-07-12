@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { AppShell } from "@/components/AppShell";
+import { PageHero } from "@/components/PageHero";
 import { TickerSearch } from "@/components/TickerSearch";
 import { getSupportedTickers } from "@/lib/mockData";
 
@@ -14,10 +15,12 @@ export default function SearchPage() {
   return (
     <AppShell>
       <div className="px-4 md:px-8 py-10 max-w-4xl mx-auto">
-        <h1 className="text-2xl font-semibold">Search</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Enter any public-company ticker to load its earnings dashboard.
-        </p>
+        <PageHero>
+          <h1 className="text-2xl font-semibold">Search</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Enter any public-company ticker to load its earnings dashboard.
+          </p>
+        </PageHero>
         <div className="mt-6">
           <TickerSearch size="lg" autoFocus />
         </div>

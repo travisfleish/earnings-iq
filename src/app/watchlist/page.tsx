@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useQueries } from "@tanstack/react-query";
 import { AppShell } from "@/components/AppShell";
+import { PageHero } from "@/components/PageHero";
 import { useWatchlist } from "@/hooks/useWatchlist";
 import { fetchAnalysis, fetchLiveQuote } from "@/lib/actions";
 import { PriceDelta } from "@/components/SentimentBadge";
@@ -71,10 +72,12 @@ export default function WatchlistPage() {
   return (
     <AppShell>
       <div className="px-4 md:px-8 py-10 max-w-6xl mx-auto">
-        <h1 className="text-2xl font-semibold">Watchlist</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Companies you&apos;ve saved for quick access.
-        </p>
+        <PageHero>
+          <h1 className="text-2xl font-semibold">Watchlist</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Companies you&apos;ve saved for quick access.
+          </p>
+        </PageHero>
 
         {!hydrated ? (
           <div className="mt-8 text-sm text-muted-foreground">Loading…</div>
@@ -83,7 +86,7 @@ export default function WatchlistPage() {
             <Star className="h-6 w-6 mx-auto text-muted-foreground" />
             <div className="mt-3 font-medium">No saved tickers yet</div>
             <p className="text-sm text-muted-foreground mt-1">
-              Open a company dashboard and hit the star to save it here.
+              Open a company dashboard and use &ldquo;Add to Watchlist&rdquo; to save it here.
             </p>
             <Link
               href="/search"

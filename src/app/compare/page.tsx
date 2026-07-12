@@ -1,6 +1,7 @@
 "use client";
 
 import { AppShell } from "@/components/AppShell";
+import { PageHero } from "@/components/PageHero";
 import { getSupportedTickers } from "@/lib/mockData";
 import { fetchAnalysis } from "@/lib/actions";
 import { useQueries } from "@tanstack/react-query";
@@ -33,10 +34,12 @@ export default function ComparePage() {
   return (
     <AppShell>
       <div className="px-4 md:px-8 py-10 max-w-6xl mx-auto">
-        <h1 className="text-2xl font-semibold">Compare companies</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Pick up to 4 tickers to compare side-by-side.
-        </p>
+        <PageHero>
+          <h1 className="text-2xl font-semibold">Compare companies</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Pick up to 4 tickers to compare side-by-side.
+          </p>
+        </PageHero>
 
         <div className="mt-6 flex flex-wrap gap-2">
           {supported.map((t) => {
