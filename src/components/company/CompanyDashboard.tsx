@@ -28,8 +28,10 @@ import {
   Newspaper,
   ExternalLink,
   Landmark,
+  Loader2,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import type { EarningsAnalysis } from "@/lib/types";
 
@@ -183,27 +185,84 @@ export function CompanyDashboard({ ticker }: { ticker: string }) {
   );
 }
 
+const ANALYSIS_LOADING_STEPS = [
+  "Fetching current price and daily change",
+  "Loading analyst price targets and consensus",
+  "Retrieving latest earnings call transcript",
+  "Comparing with prior 3 quarters",
+  "Extracting themes, quotes, and sentiment",
+] as const;
+
+const STEP_THRESHOLDS = [0, 15, 32, 52, 72, 92];
+
+function useSimulatedLoadingProgress() {
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const started = Date.now();
+    const tick = () => {
+      const elapsed = Date.now() - started;
+      const base = 94 * (1 - Math.exp(-elapsed / 14_000));
+      const creep = elapsed > 20_000 ? Math.min(4, (elapsed - 20_000) / 8_000) : 0;
+      setProgress(Math.min(98, Math.round(base + creep)));
+    };
+    tick();
+    const id = setInterval(tick, 120);
+    return () => clearInterval(id);
+  }, []);
+
+  let activeIndex = 0;
+  for (let i = STEP_THRESHOLDS.length - 1; i >= 0; i--) {
+    if (progress >= STEP_THRESHOLDS[i]) {
+      activeIndex = Math.min(i, ANALYSIS_LOADING_STEPS.length - 1);
+      break;
+    }
+  }
+
+  return { progress, activeIndex };
+}
+
 function LoadingState({ ticker }: { ticker: string }) {
+  const { progress, activeIndex } = useSimulatedLoadingProgress();
+
   return (
     <div className="px-4 md:px-8 py-16 max-w-3xl mx-auto text-center">
       <div className="animate-pulse text-primary font-semibold text-2xl tabular">{ticker}</div>
       <div className="mt-3 text-sm text-muted-foreground">Analyzing latest earnings…</div>
-      <div className="mt-8 grid gap-2 text-left max-w-md mx-auto text-xs text-muted-foreground">
-        {[
-          "Fetching current price and daily change",
-          "Loading analyst price targets and consensus",
-          "Retrieving latest earnings call transcript",
-          "Comparing with prior 3 quarters",
-          "Extracting themes, quotes, and sentiment",
-        ].map((s, i) => (
-          <div key={s} className="flex items-center gap-2">
-            <span
-              className="h-2 w-2 rounded-full bg-primary animate-pulse"
-              style={{ animationDelay: `${i * 120}ms` }}
-            />
-            {s}
+      <div className="mt-8 max-w-md mx-auto space-y-4">
+        <div className="space-y-2 text-left">
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <span>Progress</span>
+            <span className="tabular-nums font-medium text-foreground">{progress}%</span>
           </div>
-        ))}
+          <Progress value={progress} className="h-2" />
+        </div>
+        <div className="grid gap-2 text-left text-xs">
+          {ANALYSIS_LOADING_STEPS.map((s, i) => {
+            const done = i < activeIndex;
+            const active = i === activeIndex;
+            return (
+              <div
+                key={s}
+                className={cn(
+                  "flex items-center gap-2 transition-colors",
+                  done && "text-muted-foreground/70",
+                  active && "text-foreground",
+                  !done && !active && "text-muted-foreground/50",
+                )}
+              >
+                {done ? (
+                  <Check className="h-3.5 w-3.5 text-[color:var(--bull)] shrink-0" />
+                ) : active ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin text-primary shrink-0" />
+                ) : (
+                  <span className="h-2 w-2 rounded-full bg-muted shrink-0" />
+                )}
+                {s}
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
