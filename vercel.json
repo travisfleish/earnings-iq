@@ -1,0 +1,34 @@
+{
+  "version": 3,
+  "services": {
+    "eve": {
+      "buildCommand": "npm run build:eve",
+      "framework": "eve",
+      "root": ".",
+      "routes": [
+        {
+          "src": "^/eve/v1/(.*)$",
+          "transforms": [
+            {
+              "type": "request.path",
+              "op": "set",
+              "args": "/eve/v1/$1"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "routes": [
+    {
+      "src": "^/eve/v1/(.*)$",
+      "dest": {
+        "type": "service",
+        "service": "eve"
+      }
+    },
+    {
+      "handle": "filesystem"
+    }
+  ]
+}
