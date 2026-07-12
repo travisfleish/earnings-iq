@@ -2,10 +2,10 @@
 
 Project conventions for AI agents working in this repo.
 
-- **Framework**: TanStack Start with Nitro for Vercel deployment
+- **Framework**: Next.js App Router with `withEve()` from `eve/next`
 - **Package manager**: npm
 - **Path alias**: `@/*` maps to `src/*`
-- **Server functions**: Use `createServerFn` from `@tanstack/react-start`
+- **Server actions**: Use `"use server"` in `src/lib/actions.ts` (or dedicated action modules)
 - **LLM calls**: Route through `src/lib/ai-gateway.ts` (Vercel AI Gateway)
-- **Eve agent**: Files under `agent/`; chat UI at `/chat` via `useEveAgent` from `eve/react`
+- **Eve agent**: Files under `agent/`; chat UI via `useEveAgent` from `eve/react` (same-origin `/eve/v1/*`)
 - **Do not** reintroduce `@lovable.dev/*` packages or Lovable-specific tooling

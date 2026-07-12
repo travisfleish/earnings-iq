@@ -1,9 +1,6 @@
-// Analyst price target API service placeholder.
-// Wire to Financial Modeling Prep, Finnhub, or similar.
+import { getAnalysisForTicker } from "@/lib/getAnalysis";
 
-import type { PriceTarget } from "@/lib/types";
-import { getMockAnalysis } from "@/lib/mockData";
-
-export async function fetchPriceTargets(ticker: string): Promise<PriceTarget | null> {
-  return getMockAnalysis(ticker)?.priceTarget ?? null;
+export async function fetchAnalystTargets(ticker: string) {
+  const analysis = await getAnalysisForTicker(ticker);
+  return analysis?.priceTarget ?? null;
 }

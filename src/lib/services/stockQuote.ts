@@ -1,13 +1,11 @@
-// Stock quote API service placeholder.
-// Wire to Financial Modeling Prep, Alpha Vantage, Polygon.io, Finnhub, or Intrinio.
-// Keep the shape stable so consumers do not need to change.
+import { getLiveQuoteForTicker } from "@/lib/getLiveQuote";
 
-import type { CompanyProfile } from "@/lib/types";
-import { getMockAnalysis } from "@/lib/mockData";
-
-export async function fetchStockQuote(ticker: string): Promise<Pick<CompanyProfile, "price" | "change" | "changePct"> | null> {
-  const mock = getMockAnalysis(ticker);
-  if (!mock) return null;
-  const { price, change, changePct } = mock.profile;
-  return { price, change, changePct };
+export async function fetchStockQuote(ticker: string) {
+  const quote = await getLiveQuoteForTicker(ticker);
+  if (!quote) return null;
+  return {
+    price: quote.price,
+    change: quote.change,
+    changePct: quote.changePct,
+  };
 }

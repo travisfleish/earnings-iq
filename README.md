@@ -1,6 +1,6 @@
 # Earnings IQ
 
-TanStack Start app for earnings intelligence dashboards. Deployed on Vercel with Nitro and Supabase.
+Next.js app for earnings intelligence dashboards. Deployed on Vercel with Eve co-located via `withEve()`.
 
 ## Local development
 
@@ -12,17 +12,15 @@ npm install
 cp .env.example .env.local
 ```
 
-Run the app and Eve agent in **two terminals**:
+Start the app and Eve agent together:
 
 ```bash
-# Terminal 1 — TanStack Start app
 npm run dev
-
-# Terminal 2 — Eve agent (same-origin /eve/v1/* proxied in dev)
-npm run dev:eve
 ```
 
-Open [http://localhost:5173/chat](http://localhost:5173/chat) for the Eve earnings assistant.
+`withEve()` in `next.config.ts` boots the Eve dev server alongside Next.js and proxies `/eve/v1/*` on the same origin. No second terminal needed.
+
+Open [http://localhost:3000](http://localhost:3000) — GeniusAI chat is on the home page (`/#geniusai`).
 
 ## Environment variables
 
@@ -30,14 +28,17 @@ Copy `.env.example` to `.env.local` and fill in values. For Vercel deployments, 
 
 | Variable | Required | Description |
 | --- | --- | --- |
-| `VITE_SUPABASE_URL` | Yes | Supabase project URL |
-| `VITE_SUPABASE_PUBLISHABLE_KEY` | Yes | Supabase publishable key |
-| `SUPABASE_URL` | Server | Same as above for SSR/server functions |
-| `SUPABASE_PUBLISHABLE_KEY` | Server | Same as above for SSR/server functions |
-| `AI_GATEWAY_API_KEY` | Optional | Vercel AI Gateway API key (local/CI) |
-| `VERCEL_OIDC_TOKEN` | Optional | Auto-provisioned via `vercel env pull` |
+| `NEXT_PUBLIC_SUPABASE_URL` | Client | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Client | Supabase publishable key |
+| `SUPABASE_URL` | Server | Same as above for server actions |
+| `SUPABASE_PUBLISHABLE_KEY` | Server | Same as above for server actions |
+| `AI_GATEWAY_API_KEY` | Recommended | Vercel AI Gateway API key — uses purchased AI Gateway credits |
+| `VERCEL_AI_API_KEY` | Optional | Alias for `AI_GATEWAY_API_KEY` |
+| `VERCEL_OIDC_TOKEN` | Optional | From `vercel env pull`; uses free monthly AI Gateway pool |
 | `AI_SCORECARD_MODEL` | Optional | Model slug for scorecard + Eve agent, default `google/gemini-2.5-flash` |
-| `EVE_BASE_URL` | Optional | Eve dev server origin (default `http://127.0.0.1:4274` in development) |
+| `AI_ANALYSIS_MODEL` | Optional | Model for earnings report generation, default `perplexity/sonar` then `google/gemini-2.5-flash` |
+
+Legacy `VITE_SUPABASE_*` env vars still work as fallbacks.
 
 ## Deploy to Vercel
 
@@ -49,22 +50,14 @@ npx vercel link
 npx vercel env pull .env.local
 ```
 
-3. Vercel detects **TanStack Start** automatically (requires the Nitro Vite plugin in `vite.config.ts`).
-4. `vercel.json` mounts the Eve agent as a co-located service at `/eve/v1/*`.
+3. Vercel detects **Next.js** automatically.
+4. `withEve()` configures Eve as a co-located service at `/eve/v1/*` — no manual `vercel.json` routing needed.
 5. Add environment variables in Project Settings.
 6. Enable **AI Gateway** in project settings for LLM features (scorecard + Eve).
 
-For local AI Gateway auth:
-
-```bash
-vercel link
-vercel env pull .env.local
-```
-
 ## Stack
 
-- [TanStack Start](https://tanstack.com/start) + React 19
-- [Nitro](https://nitro.build/) (Vercel preset)
+- [Next.js](https://nextjs.org/) App Router + React 19
 - [Supabase](https://supabase.com/)
 - [Tailwind CSS v4](https://tailwindcss.com/) + shadcn/ui
 - [Vercel AI Gateway](https://vercel.com/docs/ai-gateway)
