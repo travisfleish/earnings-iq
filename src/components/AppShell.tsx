@@ -3,17 +3,18 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
-import { LineChart, Search, Star, GitCompareArrows, FileText, Settings, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
+import { BrandButton } from "@/components/brand/BrandButton";
 import { Logo } from "@/components/brand/Logo";
 import { cn } from "@/lib/utils";
 
+const GENIUS_INVESTOR_SITE_URL = "https://investors.geniussports.com";
+
 const nav = [
-  { to: "/", label: "Home", icon: LineChart },
-  { to: "/search", label: "Search", icon: Search },
-  { to: "/watchlist", label: "Watchlist", icon: Star },
-  { to: "/compare", label: "Compare", icon: GitCompareArrows },
-  { to: "/reports", label: "Reports", icon: FileText },
-  { to: "/settings", label: "Settings", icon: Settings },
+  { to: "/search", label: "Search" },
+  { to: "/watchlist", label: "Watchlist" },
+  { to: "/compare", label: "Compare" },
+  { to: "/reports", label: "Reports" },
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -22,36 +23,43 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen flex flex-col bg-snow">
-      <header className="h-16 flex items-center gap-4 px-4 md:px-8 bg-snow sticky top-0 z-20">
-        <Link href="/" className="flex items-center gap-2.5 shrink-0">
-          <Logo variant="marque" color="blue" className="h-8 w-auto" />
-          <span className="hidden sm:block font-heading text-sm font-medium text-navy leading-none tracking-tight">
-            Earnings IQ
-          </span>
+      <header className="min-h-16 pt-2 md:pt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-4 px-4 md:px-8 bg-snow sticky top-0 z-20">
+        <Link href="/" className="flex items-center shrink-0 justify-self-start">
+          <Logo variant="horizontal" color="blue" className="h-12 w-auto md:h-14" />
         </Link>
 
-        <div className="ml-auto flex items-center gap-1">
-          <nav className="hidden lg:flex items-center gap-1">
-            {nav.map((n) => {
-              const active = n.to === "/" ? pathname === "/" : pathname.startsWith(n.to);
-              const Icon = n.icon;
-              return (
-                <Link
-                  key={n.to}
-                  href={n.to}
-                  className={cn(
-                    "flex items-center gap-2 px-3 py-2 rounded-full text-sm font-body transition-colors duration-300",
-                    active
-                      ? "bg-lightGrey text-navy font-medium"
-                      : "text-muted-foreground hover:bg-lightGrey/60 hover:text-navy",
-                  )}
-                >
-                  <Icon className="h-4 w-4 shrink-0" />
-                  {n.label}
-                </Link>
-              );
-            })}
-          </nav>
+        <nav className="hidden lg:flex items-center gap-1 justify-self-center">
+          {nav.map((n) => {
+            const active = pathname.startsWith(n.to);
+            return (
+              <Link
+                key={n.to}
+                href={n.to}
+                className={cn(
+                  "px-3 py-2 rounded-full text-sm font-heading transition-colors duration-300",
+                  active
+                    ? "bg-lightGrey text-navy font-medium"
+                    : "text-muted-foreground hover:bg-lightGrey/60 hover:text-navy",
+                )}
+              >
+                {n.label}
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div className="flex items-center gap-2 justify-self-end">
+          <a
+            href={GENIUS_INVESTOR_SITE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hidden sm:inline-flex shrink-0"
+          >
+            <BrandButton
+              link={{ title: "Visit Genius Investor Site", url: GENIUS_INVESTOR_SITE_URL }}
+              button={{ type: "header", background_color: "lavenderGrey" }}
+            />
+          </a>
           <button
             className="lg:hidden p-2 rounded-full hover:bg-lightGrey text-navy"
             onClick={() => setOpen((v) => !v)}
@@ -64,22 +72,31 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {open && (
         <nav className="lg:hidden border-b border-lavenderGrey bg-white px-4 py-3 space-y-1">
+          <a
+            href={GENIUS_INVESTOR_SITE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex sm:hidden mb-2"
+          >
+            <BrandButton
+              link={{ title: "Visit Genius Investor Site", url: GENIUS_INVESTOR_SITE_URL }}
+              button={{ type: "header", background_color: "lavenderGrey" }}
+            />
+          </a>
           {nav.map((n) => {
-            const active = n.to === "/" ? pathname === "/" : pathname.startsWith(n.to);
-            const Icon = n.icon;
+            const active = pathname.startsWith(n.to);
             return (
               <Link
                 key={n.to}
                 href={n.to}
                 onClick={() => setOpen(false)}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-full text-sm font-body transition-colors duration-300",
+                  "block px-3 py-2.5 rounded-full text-sm font-heading transition-colors duration-300",
                   active
                     ? "bg-lightGrey text-navy font-medium"
                     : "text-muted-foreground hover:bg-lightGrey/60 hover:text-navy",
                 )}
               >
-                <Icon className="h-4 w-4 shrink-0" />
                 {n.label}
               </Link>
             );

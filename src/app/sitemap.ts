@@ -8,7 +8,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "/watchlist", changeFrequency: "weekly" as const, priority: 0.5 },
     { path: "/compare", changeFrequency: "weekly" as const, priority: 0.5 },
     { path: "/reports", changeFrequency: "weekly" as const, priority: 0.4 },
-    { path: "/settings", changeFrequency: "monthly" as const, priority: 0.3 },
   ];
 
   return entries.map((e) => ({

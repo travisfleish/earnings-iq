@@ -25,15 +25,13 @@ export default function HomePage() {
   return (
     <AppShell>
       <section className="px-4 md:px-8 pt-16 md:pt-20 pb-10 max-w-4xl mx-auto text-center">
-        <DotSubheading color="brightGreen">AI-powered earnings intelligence</DotSubheading>
+        <DotSubheading color="brightGreen">Instant earnings intelligence for any ticker</DotSubheading>
         <h1 className="mt-6 text-h1 font-heading text-navy">
-          One ticker in.
-          <br />
-          <span className="text-blue">A full earnings brief out.</span>
+          Genius Sports <span className="text-blue">EarningsIQ</span>
         </h1>
         <p className="mt-5 font-body text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-          Ask GeniusAI about earnings themes, sentiment, and analyst targets — or jump straight to a
-          full dashboard for any public company.
+          Enter any public-company ticker for an executive-grade earnings dashboard — call summaries,
+          themes, analyst sentiment, price targets, and quarter-over-quarter comparison.
         </p>
 
         <div className="mt-10 max-w-2xl mx-auto">
