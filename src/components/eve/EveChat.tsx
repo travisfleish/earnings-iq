@@ -95,20 +95,7 @@ function renderPart(part: EveMessagePart, key: string, isAnimating: boolean) {
   }
 
   if (part.type === "dynamic-tool") {
-    if (part.state === "approval-requested") return null;
-
-    if (part.state === "output-available" || part.state === "output-denied" || part.state === "output-error") {
-      return null;
-    }
-
-    return (
-      <div
-        key={key}
-        className="rounded-md border border-border/60 bg-muted/30 px-3 py-2 text-xs text-muted-foreground"
-      >
-        Running {part.toolName}…
-      </div>
-    );
+    return null;
   }
 
   if (part.type === "authorization") {
