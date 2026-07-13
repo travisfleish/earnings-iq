@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @source "../";
 @import "tw-animate-css";
+@import "streamdown/styles.css";
 
 @custom-variant dark (&:is(.dark *));
 

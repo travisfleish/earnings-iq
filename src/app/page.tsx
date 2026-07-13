@@ -55,7 +55,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="px-4 md:px-8 pb-16 pt-14 max-w-6xl mx-auto grid md:grid-cols-3 gap-4">
+      <section className="px-4 md:px-8 pb-10 pt-14 max-w-6xl mx-auto grid md:grid-cols-3 gap-4">
         {[
           {
             icon: TrendingUp,
@@ -92,7 +92,7 @@ export default function HomePage() {
         ))}
       </section>
 
-      <section className="px-4 md:px-8 pb-20 max-w-4xl mx-auto">
+      <section className="px-4 md:px-8 pt-14 pb-20 max-w-4xl mx-auto">
         <NewsletterSignup />
       </section>
     </AppShell>

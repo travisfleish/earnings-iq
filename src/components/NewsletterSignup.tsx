@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { Mail, Check, Loader2 } from "lucide-react";
+import { useRef, useState } from "react";
+import { Mail } from "lucide-react";
+import { BrandButton } from "@/components/brand/BrandButton";
 import { subscribeNewsletter } from "@/lib/actions";
 import { cn } from "@/lib/utils";
 
 export function NewsletterSignup({ compact = false }: { compact?: boolean }) {
+  const formRef = useRef<HTMLFormElement>(null);
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "ok" | "err">("idle");
   const [msg, setMsg] = useState<string | null>(null);
@@ -58,7 +60,7 @@ export function NewsletterSignup({ compact = false }: { compact?: boolean }) {
             scorecards, guidance tone, and what to watch next.
           </p>
 
-          <form onSubmit={onSubmit} className="mt-5 flex flex-col sm:flex-row gap-2">
+          <form ref={formRef} onSubmit={onSubmit} className="mt-5 flex flex-col sm:flex-row gap-2">
             <input
               type="email"
               required
@@ -68,15 +70,21 @@ export function NewsletterSignup({ compact = false }: { compact?: boolean }) {
               className="flex-1 h-11 rounded-full border border-white/20 bg-white/10 px-4 text-sm font-body text-white placeholder:text-white/50 outline-none focus:border-brightGreen focus:ring-2 focus:ring-brightGreen/20"
               disabled={status === "loading"}
             />
-            <button
-              type="submit"
-              disabled={status === "loading" || status === "ok"}
-              className="inline-flex items-center justify-center gap-2 h-11 px-6 rounded-full bg-white text-navy text-sm font-medium font-body hover:bg-brightGreen transition-colors duration-300 disabled:opacity-60"
+            <div
+              className={cn(
+                "shrink-0 self-start sm:self-auto",
+                (status === "loading" || status === "ok") && "pointer-events-none opacity-60",
+              )}
             >
-              {status === "loading" && <Loader2 className="h-4 w-4 animate-spin" />}
-              {status === "ok" && <Check className="h-4 w-4" />}
-              {status === "ok" ? "Subscribed" : "Subscribe"}
-            </button>
+              <BrandButton
+                link={{
+                  title: status === "ok" ? "Subscribed" : "Subscribe",
+                  url: "#",
+                }}
+                button={{ type: "header", background_color: "lavenderGrey" }}
+                onClick={() => formRef.current?.requestSubmit()}
+              />
+            </div>
           </form>
 
           {msg && (

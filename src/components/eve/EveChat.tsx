@@ -16,8 +16,11 @@ type PendingInput = {
 };
 
 function formatAgentError(message: string): string {
-  if (/rate.?limit|429|GatewayRateLimitError|Free tier requests/i.test(message)) {
-    return "GeniusAI is using Vercel AI Gateway free-tier credits (tight rate limits). Vercel Pro covers hosting, not AI Gateway — set AI_GATEWAY_API_KEY in .env.local (or keep VERCEL_AI_API_KEY in .env) so Eve uses your paid gateway key, or purchase AI Gateway credits in the Vercel dashboard.";
+  if (/Free tier requests|OIDC.*rate.?limit|free monthly pool/i.test(message)) {
+    return "GeniusAI hit Vercel AI Gateway free-tier limits. Set AI_GATEWAY_API_KEY in .env.local (or VERCEL_AI_API_KEY in .env), restart npm run dev, then start a new chat.";
+  }
+  if (/rate.?limit|429|GatewayRateLimitError|rate_limit_exceeded/i.test(message)) {
+    return "GeniusAI hit an AI Gateway rate limit. Wait a moment and try again, or start a new chat. If this keeps happening, check AI Gateway usage in the Vercel dashboard.";
   }
   if (/AI Gateway authentication|Invalid API key|Invalid OIDC/i.test(message)) {
     return "GeniusAI could not authenticate with Vercel AI Gateway. Run `vercel env pull .env.local` or set AI_GATEWAY_API_KEY, then restart `npm run dev`.";
@@ -26,20 +29,29 @@ function formatAgentError(message: string): string {
 }
 
 function findLatestTurnError(events: readonly { type: string; data?: unknown }[]): string | null {
-  for (let i = events.length - 1; i >= 0; i -= 1) {
+  let lastTurnCompletedIndex = -1;
+  let lastFailure: { index: number; message: string } | null = null;
+
+  for (let i = 0; i < events.length; i += 1) {
     const event = events[i];
-    if (event?.type === "turn.failed" || event?.type === "session.failed") {
-      const message =
-        typeof event.data === "object" &&
-        event.data !== null &&
-        "message" in event.data &&
-        typeof (event.data as { message?: unknown }).message === "string"
-          ? (event.data as { message: string }).message
-          : "Unknown error";
-      return formatAgentError(message);
+    if (event?.type === "turn.completed") {
+      lastTurnCompletedIndex = i;
+      continue;
     }
+    if (event?.type !== "turn.failed" && event?.type !== "session.failed") continue;
+
+    const message =
+      typeof event.data === "object" &&
+      event.data !== null &&
+      "message" in event.data &&
+      typeof (event.data as { message?: unknown }).message === "string"
+        ? (event.data as { message: string }).message
+        : "Unknown error";
+    lastFailure = { index: i, message };
   }
-  return null;
+
+  if (!lastFailure || lastTurnCompletedIndex > lastFailure.index) return null;
+  return formatAgentError(lastFailure.message);
 }
 
 function findPendingInput(messages: readonly EveMessage[]): PendingInput | null {
@@ -56,21 +68,27 @@ function findPendingInput(messages: readonly EveMessage[]): PendingInput | null 
   return null;
 }
 
-function renderPart(part: EveMessagePart, key: string) {
+function renderPart(part: EveMessagePart, key: string, isAnimating: boolean) {
   if (part.type === "text") {
+    const streaming = isAnimating && part.state === "streaming";
     return (
       <div key={key} className="prose prose-sm dark:prose-invert max-w-none">
-        <Streamdown>{part.text}</Streamdown>
+        <Streamdown animated={{ sep: "word" }} isAnimating={streaming}>
+          {part.text}
+        </Streamdown>
       </div>
     );
   }
 
   if (part.type === "reasoning") {
+    const streaming = isAnimating && part.state === "streaming";
     return (
       <details key={key} className="rounded-md border border-border/60 bg-muted/40 px-3 py-2 text-sm">
         <summary className="cursor-pointer text-muted-foreground">Reasoning</summary>
         <div className="mt-2 text-muted-foreground">
-          <Streamdown>{part.text}</Streamdown>
+          <Streamdown animated={{ sep: "word" }} isAnimating={streaming}>
+            {part.text}
+          </Streamdown>
         </div>
       </details>
     );
@@ -121,10 +139,21 @@ function renderPart(part: EveMessagePart, key: string) {
   return null;
 }
 
-function MessageBubble({ message }: { message: EveMessage }) {
+function assistantHasVisibleText(messages: readonly EveMessage[]): boolean {
+  for (let i = messages.length - 1; i >= 0; i -= 1) {
+    const message = messages[i];
+    if (message?.role !== "assistant") continue;
+    return message.parts.some(
+      (part) => (part.type === "text" || part.type === "reasoning") && part.text.length > 0,
+    );
+  }
+  return false;
+}
+
+function MessageBubble({ message, isAnimating }: { message: EveMessage; isAnimating: boolean }) {
   const isUser = message.role === "user";
   const visibleParts = message.parts
-    .map((part, index) => renderPart(part, `${message.id}-${index}`))
+    .map((part, index) => renderPart(part, `${message.id}-${index}`, isAnimating))
     .filter(Boolean);
 
   if (visibleParts.length === 0 && !isUser) return null;
@@ -233,6 +262,7 @@ export function EveChat({ variant = "page" }: { variant?: "page" | "hero" }) {
   const pendingInput = useMemo(() => findPendingInput(messages), [messages]);
   const turnError = useMemo(() => findLatestTurnError(events), [events]);
   const displayError = error?.message ?? turnError;
+  const showThinking = isBusy && !pendingInput && !assistantHasVisibleText(messages);
 
   const placeholder = useMemo(
     () =>
@@ -299,11 +329,19 @@ export function EveChat({ variant = "page" }: { variant?: "page" | "hero" }) {
             </div>
           )}
 
-          {messages.map((message) => (
-            <MessageBubble key={message.id} message={message} />
+          {messages.map((message, index) => (
+            <MessageBubble
+              key={message.id}
+              message={message}
+              isAnimating={
+                status === "streaming" &&
+                index === messages.length - 1 &&
+                message.role === "assistant"
+              }
+            />
           ))}
 
-          {isBusy && !pendingInput && (
+          {showThinking && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />
               GeniusAI is thinking…
