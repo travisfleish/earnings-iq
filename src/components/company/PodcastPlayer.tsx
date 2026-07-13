@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Check, Headphones, Loader2, Mic } from "lucide-react";
 import { fetchPodcastAudio, fetchPodcastScript } from "@/lib/actions";
+import { useSavedReports } from "@/hooks/useSavedReports";
 import {
   Dialog,
   DialogContent,
@@ -29,6 +30,7 @@ const PROGRESS: Record<StepId, number> = {
 };
 
 export function PodcastPlayer({ ticker }: { ticker: string }) {
+  const { save } = useSavedReports();
   const [open, setOpen] = useState(false);
   const [phase, setPhase] = useState<"idle" | "generating" | "ready" | "error">("idle");
   const [stepStatus, setStepStatus] = useState<Record<StepId, StepStatus>>({
@@ -112,6 +114,18 @@ export function PodcastPlayer({ ticker }: { ticker: string }) {
     setAudioUrl(url);
     setTitle(scriptResult.title);
     setPhase("ready");
+
+    void save({
+      type: "podcast",
+      id: `${scriptResult.ticker}-${scriptResult.earningsQuarter}-podcast`,
+      ticker: scriptResult.ticker,
+      companyName: scriptResult.companyName,
+      earningsQuarter: scriptResult.earningsQuarter,
+      title: scriptResult.title,
+      script: scriptResult.script,
+      audioBase64: audioResult.audioBase64,
+      mimeType: audioResult.mimeType,
+    });
   };
 
   const handleOpenChange = (next: boolean) => {

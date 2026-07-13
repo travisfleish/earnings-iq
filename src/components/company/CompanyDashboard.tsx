@@ -988,6 +988,7 @@ function SaveReportButton({ analysis }: { analysis: EarningsAnalysis }) {
     <button
       onClick={() => {
         save({
+          type: "report",
           id: reportId,
           ticker: analysis.profile.ticker,
           companyName: analysis.profile.name,

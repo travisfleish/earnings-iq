@@ -3,7 +3,14 @@ import { arrayBufferToBase64, getElevenLabsApiKey, textToSpeech } from "@/lib/el
 import { analysisToPodcastScript, podcastTitle } from "@/lib/podcastScript";
 
 export type PodcastScriptResult =
-  | { ok: true; script: string; title: string }
+  | {
+      ok: true;
+      script: string;
+      title: string;
+      ticker: string;
+      companyName: string;
+      earningsQuarter: string;
+    }
   | { ok: false; message: string };
 
 export type PodcastAudioResult =
@@ -30,6 +37,9 @@ export async function preparePodcastScript(ticker: string): Promise<PodcastScrip
     ok: true,
     script: analysisToPodcastScript(analysis),
     title: podcastTitle(analysis),
+    ticker: analysis.profile.ticker,
+    companyName: analysis.profile.name,
+    earningsQuarter: analysis.profile.earningsQuarter,
   };
 }
 
